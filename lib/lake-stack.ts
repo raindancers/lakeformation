@@ -11,7 +11,7 @@ export class LakeStack extends cdk.Stack {
     super(scope, id, props);
 
 
-    // This is a convience class only. 
+    // This is a convience class only, as a way to hold the methods. 
     const mylake = new lakeformation.LakeFormation(this, 'LakeFormation', {})
 
     // create and add new buckets to the datalake;
@@ -19,6 +19,13 @@ export class LakeStack extends cdk.Stack {
     const silver = mylake.addNewBucketToLakeFormation('silverbucket')
     const gold = mylake.addNewBucketToLakeFormation('goldbucket')
 
-    mylake.addS3IngestDatabase('ingest', bronze, '/ingest/')
+    // need to make CDK execution role a datalake-administrator.. where shoudl this be done?
+
+    // this will create a database band i 
+    const ingestdatabase = mylake.addS3IngestDatabase('s3ingest', bronze, '/ingest/')  
+    ingestdatabase.addS3Crawler({
+      name: 'GetsomeCSV',
+      description: 'Get the CSV Files',
+    }); 
   }
 }

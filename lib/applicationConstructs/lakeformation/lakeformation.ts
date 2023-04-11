@@ -3,11 +3,14 @@ import {
   aws_s3 as s3,
   aws_lakeformation as lakeformation,
   aws_iam as iam,
+  aws_glue as glue,
 } from 'aws-cdk-lib';
 
-import * as glue from '@aws-cdk/aws-glue-alpha';
+import * as glue_alpha from '@aws-cdk/aws-glue-alpha';
+import * as gluedatabase from '../gluedatabase/gluedatabase'
 
 import * as constructs from 'constructs';
+import { createWriteStream } from 'fs';
 
 export interface LakeFormationProps {
 	
@@ -48,12 +51,12 @@ export class LakeFormation extends constructs.Construct {
    * @param bucketSuffix include the leading / in teh suffice.
    * @returns 
    */
-  public addS3IngestDatabase(databaseName: string, bucket: s3.Bucket, bucketSuffix: string): glue.Database {
+  public addS3IngestDatabase(databaseName: string, bucket: s3.Bucket, bucketSuffix: string): gluedatabase.IngestDataBase {
 	
-    return new glue.Database(this, databaseName, {
+	return new gluedatabase.IngestDataBase(this, databaseName, {
 		databaseName: databaseName,
-		locationUri: `s3://${bucket.bucketName}${bucketSuffix}`,
+		bucket: bucket,
+		bucketSuffix: bucketSuffix
 	})
-
   }
 }
