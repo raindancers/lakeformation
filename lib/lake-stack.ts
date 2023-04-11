@@ -21,8 +21,8 @@ export class LakeStack extends cdk.Stack {
 
     // need to make CDK execution role a datalake-administrator.. where shoudl this be done?
 
-    // this will create a database band i 
-    const ingestdatabase = mylake.addS3IngestDatabase('s3ingest', bronze, '/ingest/')  
+    // this will create a database and an ingest crawler
+    const ingestdatabase = mylake.addS3IngestDatabase('s3 ingest', bronze, '/ingest/')  
     ingestdatabase.addS3Crawler({
       name: 'GetsomeCSV',
       description: 'Get the CSV Files',
