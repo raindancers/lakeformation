@@ -17,9 +17,15 @@ export interface IngestDataBaseProps {
 	bucketSuffix: string
 }
 
+export interface S3Path {
+	bucket: s3.Bucket,
+	path: string,
+}
+
 export interface S3CrawlerProps {
 	name: string,
-	description: string | undefined,
+	description?: string | undefined,
+	path?: S3Path,
 }
 
 export class IngestDataBase extends constructs.Construct {
@@ -45,19 +51,37 @@ export class IngestDataBase extends constructs.Construct {
 		assumedBy: new iam.ServicePrincipal('glue.amazonaws.com'),
 	});
 	crawlerRole.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSGlueServiceRole'));
-	this.bucket.grantRead(crawlerRole);
 
-	return new glue.CfnCrawler(this, `crawler${props.name}`, {
-		role: crawlerRole.roleArn,
-		databaseName: this.database.databaseName,
-		targets: {
-			s3Targets: [
-				{path: this.database.locationUri}
-			]
-		},
-		name: props.name,
 
-	})
+	if (props.path) {
+		props.path.bucket.grantRead(crawlerRole)
+
+	
+		return new glue.CfnCrawler(this, `crawler${props.name}`, {
+			role: crawlerRole.roleArn,
+			databaseName: this.database.databaseName,
+			targets: {
+				s3Targets: [
+					{path: `s3://${props.path.bucket.bucketName}/${props.path.path}`}
+				]
+			},
+			name: props.name,
+		})
+	
+	} else {
+
+		this.bucket.grantRead(crawlerRole)
+		return new glue.CfnCrawler(this, `crawler${props.name}`, {
+			role: crawlerRole.roleArn,
+			databaseName: this.database.databaseName,
+			targets: {
+				s3Targets: [
+					{path: this.database.locationUri}
+				]
+			},
+			name: props.name,
+		})
+	}
 
   }
 }
