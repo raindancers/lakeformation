@@ -23,6 +23,13 @@ this [stack](./lib/stacks/ingest/worldData/worldData.ts) creates
 ## Deployment:
 This assumes you have an account in aws, that has been cdk bootstrapped, and access to us it.   This applicaiton is locaiton agnostic. 
 
+TODO: THere is currnetly a gap in this construct, and the cdk-execution role is not given datalake permissions, this will mean that the stack will not deploy, unless you do this manually. Intention is to fix this so it is not a manual requirement. 
+
+Open Lake Formation in Console,  Permissions / Administrative Roles and tasks.. In Data lake administrators add the role
+
+cdk-hnb659fds-cfn-exec-role-<accountnumber>-<region> as a datalake admin.  (if you used a non default cdk qualifier use it instead)
+
+
 Clone the project, cd into it synth and deploy
 
 ```
