@@ -35,8 +35,9 @@ Clone the project, cd into it synth and deploy
 ```
 git clone https://github.com/raindancers/lakeformation.git
 cd lakeformation
+npm install 
 cdk synth
-cdk deploy
+cdk deploy --all --profile <yourprofile>
 ```
 
 ## Usage:
