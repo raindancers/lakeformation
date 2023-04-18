@@ -5,7 +5,7 @@ import {
   aws_logs as logs, 
 } from "aws-cdk-lib";
 
-import * as lakeformation from "../lakeformation/lakeformation";
+import * as lakeformation from "../../../applicationConstructs/lakeformation/lakeformation";
 import * as constructs from "constructs";
 import * as path from "path";
 
