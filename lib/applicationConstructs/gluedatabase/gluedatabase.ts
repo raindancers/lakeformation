@@ -6,10 +6,9 @@ import {
   aws_glue as glue,
 } from 'aws-cdk-lib';
 
-import * as glue_alpha from '@aws-cdk/aws-glue-alpha';
-
 import * as constructs from 'constructs';
-import { createWriteStream } from 'fs';
+import * as datalake from '../lakeformation/lakeformation'
+
 
 export interface IngestDataBaseProps {
 	databaseName: string,
@@ -25,22 +24,26 @@ export interface S3Path {
 export interface S3CrawlerProps {
 	name: string,
 	description?: string | undefined,
-	path?: S3Path,
+	path: S3Path,
 }
 
 export class IngestDataBase extends constructs.Construct {
 
   bucket: s3.Bucket
-  database: glue_alpha.Database
+  database: glue.CfnDatabase
+  databaseName: string
 
   constructor(scope: constructs.Construct, id: string, props: IngestDataBaseProps) {
     super(scope, id); 
   
 	this.bucket = props.bucket
+	this.databaseName = props.databaseName
 
-    this.database = new glue_alpha.Database(this, props.databaseName, {
-      databaseName: props.databaseName,
-      locationUri: `s3://${props.bucket.bucketName}${props.bucketSuffix}`,
+    this.database = new glue.CfnDatabase(this, props.databaseName, {
+      catalogId: `${cdk.Aws.ACCOUNT_ID}`,
+	  databaseInput: {
+		name: props.databaseName,
+	  }
     });
   }
 
@@ -50,38 +53,53 @@ export class IngestDataBase extends constructs.Construct {
 	const crawlerRole = new iam.Role(this, `crawlerRole${props.name}`, {
 		assumedBy: new iam.ServicePrincipal('glue.amazonaws.com'),
 	});
+
+
 	crawlerRole.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSGlueServiceRole'));
 
+	
+	// allow the crawler to access to the glue database and the S3 location. 
+	new lakeformation.CfnPermissions(this, 'gluedatabasepermission', {
+		dataLakePrincipal: {
+			dataLakePrincipalIdentifier: crawlerRole.roleArn
+		},
+		resource: {
+			databaseResource: {
+				catalogId: this.database.catalogId,
+				name: this.databaseName,
+			},
+		},
+		permissions: [datalake.Permissions.ALL]
+	})
 
-	if (props.path) {
-		props.path.bucket.grantRead(crawlerRole)
+	new lakeformation.CfnPermissions(this, 's3permission', {
+		dataLakePrincipal: {
+			dataLakePrincipalIdentifier: crawlerRole.roleArn
+		},
+		resource: {
+			dataLocationResource: {
+				catalogId: this.database.catalogId,
+				s3Resource: `${props.path.bucket.bucketArn}/${props.path.path}`
+
+			},
+		},
+		permissions: [datalake.Permissions.CREATE_TABLE_READ_WRITE]
+	})
 
 	
-		return new glue.CfnCrawler(this, `crawler${props.name}`, {
-			role: crawlerRole.roleArn,
-			databaseName: this.database.databaseName,
-			targets: {
-				s3Targets: [
-					{path: `s3://${props.path.bucket.bucketName}/${props.path.path}`}
-				]
-			},
-			name: props.name,
-		})
+	// create the crawlwer
+
+	return new glue.CfnCrawler(this, `crawler${props.name}`, {
+		role: crawlerRole.roleArn,
+		databaseName: this.databaseName,
+		targets: {
+			s3Targets: [
+				{path: `s3://${props.path.bucket.bucketName}/${props.path.path}`}
+			]
+		},
+		name: props.name,
+	})
 	
-	} else {
-
-		this.bucket.grantRead(crawlerRole)
-		return new glue.CfnCrawler(this, `crawler${props.name}`, {
-			role: crawlerRole.roleArn,
-			databaseName: this.database.databaseName,
-			targets: {
-				s3Targets: [
-					{path: this.database.locationUri}
-				]
-			},
-			name: props.name,
-		})
-	}
-
+	
   }
 }

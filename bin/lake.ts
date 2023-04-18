@@ -1,15 +1,24 @@
 #!/usr/bin/env node
 import * as cdk from 'aws-cdk-lib';
-import { LakeStack } from '../lib/lake-stack';
-import { ConditionAssessment } from '../lib/applicationConstructs/conditionAssessment/conditionAssessment'
+import { WorldDataLakeFormation} from '../lib/stacks/datatake/theLake';
+import { WorldData } from '../lib/applicationConstructs/worldData/worldData';
 
 const app = new cdk.App();
-const lake = new LakeStack(app, 'LakeStack', {});
 
-new ConditionAssessment(app, 'ConditionAssesement', {
-  credentialsArn: 'arn:aws:secretsmanager:ap-southeast-2:847997321372:secret:conditionAssementAPI-80aQNQ',
-  baseURL: 'https://moecat-test.assurasoftware.net/api/v2/',
-  datalake: lake.datalake,
-  targetBucket: lake.bronze,
-  bucketsuffix: 'ingest/conditionassessment'
+
+const lake = new WorldDataLakeFormation(app, 'LakeStack', {
+  makeCdkExecRoleLakeAdmin: false,
+  // this should not be included in a production stack.
+  nonproduction: true
+  
 });
+
+// World data is an exaxmple of calling an API, getting a json response and creating a Database in teh Lake
+new WorldData(app, 'WorldData', {
+  datalake:lake.datalake,
+  targetBucket: lake.bronze,
+  bucketsuffix: 'ingest/worldData/worldData.json'
+})
+
+
+

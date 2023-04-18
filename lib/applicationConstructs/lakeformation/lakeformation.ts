@@ -6,42 +6,126 @@ import {
 } from 'aws-cdk-lib';
 
 import * as gluedatabase from '../gluedatabase/gluedatabase'
-
 import * as constructs from 'constructs';
 
+/**
+ * Permissions that can be used as part of a LakeFormation Permissions 
+ * refer https://docs.aws.amazon.com/lake-formation/latest/APIReference/API_GrantPermissions.html
+ */
+export enum Permissions {
+  ALL = "ALL",
+  SELECT = "SELECT",
+  ALTER = "ALTER",
+  DROP = "DROP", 
+  DELETE = "DELETE",
+  INSERT = "INSERT",
+  DESCRIBE = 'DESCRIBE',
+  CREATE_DATABASE = 'CREATE_DATABASE',
+  CREATE_TABLE = 'CREATE_TABLE',
+  DATA_LOCATION_ACCESS = 'DATA_LOCATION_ACESS' ,
+  CREATE_TAG = 'CREATE_TAG',
+  ASSOCIATE = 'ASSOCIATE',
+  CREATE_TABLE_READ_WRITE = 'CREATE_TABLE_READ_WRITE',
+}
+
+
 export interface AddNewBucketToLakeFormationProps {
+  /**
+   * Name of Bucket
+   */
   name: string,
+  /**
+   * and optional role to use to join the Lake. This will default the the standard Service rule, if not 
+   * specified, which is the recommended approach. 
+   */
   role?: iam.Role,
+  /**
+   * Lifecycle Rules for objects that are stored in the Bucket. This will default to lifeccyle pattern that will 
+   * eventually move unused obejects to glacier. 
+   */
   lifecycleRules?: s3.LifecycleRule[] | undefined,
 }
 
+/**
+ * Glue Database that holds ingest Tables. 
+ */
 export interface AddS3IngestDatabaseProps {
-  databaseName: string, 
+  
+  /**
+   * Name for dataase
+   */  
+  databaseName: string,
+  /** these propertys form part of the URI.. What is this for? */ 
   bucket: s3.Bucket, 
   bucketSuffix: string
 }
 
+
 export interface LakeFormationProps {
   /**
    * Opt out of Mechanisms for high data protection, that are appropriate for production
+   * @default false
    */
-  nonproduction?: boolean
+  nonproduction?: boolean | undefined;
+  /**
+   * The cdk exec role will be creating Datalake Objects so will require permission
+   * @default true
+   */
+  makeCdkExecRoleLakeAdmin?: boolean | undefined;
 
 }
 
-
+/**
+ * Create a Class for the methods
+ * the methods that we use to operate on our "Datalake"
+ */
 export class LakeFormation extends constructs.Construct {
 
+  /**
+   * Used to determine if buckets are backedup, and protected from Stack Destruction. 
+   */
   nonproduction: boolean | undefined; 
 
   constructor(scope: constructs.Construct, id: string, props: LakeFormationProps) {
     super(scope, id); 
 
-    if (props.nonproduction) {
+    if (props.nonproduction ?? false) {
       this.nonproduction = true
     };
+
+
+    // check if cdk exec role has been opted out of being a data lake administrator
+    // if (props.makeCdkExecRoleLakeAdmin ?? true) {
+
+
+    //   // get the bootstrap context if it exists, otherwise default to cdk standard.       
+    //   const qualifier = (this.node.tryGetContext(cdk.BOOTSTRAP_QUALIFIER_CONTEXT) ?? 'hnb659fds')
+      
+    //   // get the cdk exec role
+    //   const cdk_exec_role = iam.Role.fromRoleName(
+    //     this,
+    //     'cdkexecrole',  
+    //     `cdk-${qualifier}-cfn-exec-role-${cdk.Aws.ACCOUNT_ID}-${cdk.Aws.REGION}`
+    //   )
+
+    //   // assign lakeformation administrator permission to the cdk role.
+    //   new lakeformation.CfnDataLakeSettings(this, 'LakeFormationSettings', {
+    //     admins: [
+    //       { dataLakePrincipalIdentifier: cdk_exec_role.roleArn }
+    //     ]
+    //   })
+    // }
   }
 
+
+
+
+
+  /**
+   * Create a new bucket and associate it to the the Lakeformation. 
+   * @param props AddNewBucketToLakeFormationProps
+   * @returns s3.Bucket
+   */
   public addNewBucketToLakeFormation(props: AddNewBucketToLakeFormationProps): s3.Bucket {
 
     var bucket: s3.Bucket;
@@ -74,11 +158,13 @@ export class LakeFormation extends constructs.Construct {
     var autoDeleteObjects: boolean = false;
     var removalPolicy: cdk.RemovalPolicy = cdk.RemovalPolicy.RETAIN;
 
-    if (this.nonproduction ?? false )  {
-      const autoDeleteObjects = false;
-      const removalPolicy = cdk.RemovalPolicy.RETAIN
-    } 
 
+
+    if (this.nonproduction ?? false)  {
+      autoDeleteObjects = true;
+      removalPolicy = cdk.RemovalPolicy.DESTROY
+    } 
+  
     const lifecycleRules = (props.lifecycleRules ?? defaultLifeCycleRules) 
 
     bucket = new s3.Bucket(this, props.name, {
