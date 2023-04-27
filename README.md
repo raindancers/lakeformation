@@ -1,6 +1,6 @@
 # LakeFormation with CDK
 
-This cdk applicaiton creates a Datalake using AWS LakeFormation, and will provide information about the world.  
+This cdk application creates a Datalake using AWS LakeFormation, and will provide information about the world.  
 
 
 ## Stacks

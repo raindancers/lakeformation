@@ -5,7 +5,7 @@ import {
   aws_iam as iam,
 } from 'aws-cdk-lib';
 
-import * as gluedatabase from '../gluedatabase/gluedatabase'
+import * as gluedatabase from '../glue/gluedatabase'
 import * as constructs from 'constructs';
 
 /**
@@ -49,15 +49,12 @@ export interface AddNewBucketToLakeFormationProps {
 /**
  * Glue Database that holds ingest Tables. 
  */
-export interface AddS3IngestDatabaseProps {
+export interface AddDatabaseProps {
   
   /**
-   * Name for dataase
+   * Name for database
    */  
   databaseName: string,
-  /** these propertys form part of the URI.. What is this for? */ 
-  bucket: s3.Bucket, 
-  bucketSuffix: string
 }
 
 
@@ -92,33 +89,7 @@ export class LakeFormation extends constructs.Construct {
     if (props.nonproduction ?? false) {
       this.nonproduction = true
     };
-
-
-    // check if cdk exec role has been opted out of being a data lake administrator
-    // if (props.makeCdkExecRoleLakeAdmin ?? true) {
-
-
-    //   // get the bootstrap context if it exists, otherwise default to cdk standard.       
-    //   const qualifier = (this.node.tryGetContext(cdk.BOOTSTRAP_QUALIFIER_CONTEXT) ?? 'hnb659fds')
-      
-    //   // get the cdk exec role
-    //   const cdk_exec_role = iam.Role.fromRoleName(
-    //     this,
-    //     'cdkexecrole',  
-    //     `cdk-${qualifier}-cfn-exec-role-${cdk.Aws.ACCOUNT_ID}-${cdk.Aws.REGION}`
-    //   )
-
-    //   // assign lakeformation administrator permission to the cdk role.
-    //   new lakeformation.CfnDataLakeSettings(this, 'LakeFormationSettings', {
-    //     admins: [
-    //       { dataLakePrincipalIdentifier: cdk_exec_role.roleArn }
-    //     ]
-    //   })
-    // }
   }
-
-
-
 
 
   /**
@@ -197,12 +168,10 @@ export class LakeFormation extends constructs.Construct {
    * @param bucketSuffix include the leading / in teh suffice.
    * @returns 
    */
-  public addS3IngestDatabase(props: AddS3IngestDatabaseProps): gluedatabase.IngestDataBase {
+  public addDatabase(props: AddDatabaseProps): gluedatabase.GlueDataBase {
 	
-	return new gluedatabase.IngestDataBase(this, props.databaseName, {
-		databaseName: props.databaseName,
-		bucket: props.bucket,
-		bucketSuffix: props.bucketSuffix
+	return new gluedatabase.GlueDataBase(this, props.databaseName, {
+		databaseName: props.databaseName
 	})
   }
 }

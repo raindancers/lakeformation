@@ -16,7 +16,7 @@ def main(event, context):
 
 	object = s3.Object(
 	    os.environ['BRONZE_BUCKET'],
-	    os.environ['FOLDER']
+	    f"{os.environ['FOLDER']}/worldData.json" 
 	)
 
 	object.put(Body=bytes(response_raw.text, 'utf-8'))

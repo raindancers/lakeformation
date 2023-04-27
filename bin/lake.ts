@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import * as cdk from 'aws-cdk-lib';
 import { WorldDataLakeFormation} from '../lib/stacks/datatake/theLake';
-import { WorldData } from '../lib/stacks/ingest/worldData/worldData';
+import { WorldData } from '../lib/stacks/ingest/worldData/worldData'
 
 const app = new cdk.App();
 
@@ -16,7 +16,7 @@ const lake = new WorldDataLakeFormation(app, 'LakeStack', {
 new WorldData(app, 'WorldData', {
   datalake:lake.datalake,
   targetBucket: lake.bronze,
-  bucketsuffix: 'ingest/worldData/worldData.json'
+  bucketsuffix: 'ingest/worldData/'
 })
 
 
