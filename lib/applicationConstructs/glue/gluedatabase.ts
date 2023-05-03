@@ -24,6 +24,7 @@ export interface CrawlerProps {
 	readonly name: string,
 	readonly description?: string | undefined,
 	readonly targets: crawler.Targets,
+	readonly crawlerRole: iam.Role,
 }
 
 export class GlueDataBase extends constructs.Construct {
@@ -47,25 +48,12 @@ export class GlueDataBase extends constructs.Construct {
 
   public addCrawler(props: CrawlerProps): crawler.Crawler {
 
-	// the crawler role will need the service role as well as permission to read the S3 Bucket. 
-	const crawlerRole = new iam.Role(this, `crawlerRole${props.name}`, {
-		assumedBy: new iam.ServicePrincipal('glue.amazonaws.com'),
-	});
 
-
-	crawlerRole.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSGlueServiceRole'));
-	crawlerRole.addToPolicy(
-	  new iam.PolicyStatement({
-		actions: ['lakeformation:GetDataAccess'],
-		effect: iam.Effect.ALLOW,
-		resources: ['*']
-	  })	
-	)
 
 	// allow the crawler to access to the glue database
 	new lakeformation.CfnPermissions(this, 'gluedatabasepermission', {
 		dataLakePrincipal: {
-			dataLakePrincipalIdentifier: crawlerRole.roleArn
+			dataLakePrincipalIdentifier: props.crawlerRole.roleArn
 		},
 		resource: {
 			databaseResource: {
@@ -83,12 +71,12 @@ export class GlueDataBase extends constructs.Construct {
 			
 			new lakeformation.CfnPermissions(this, `s3permission${index}`, {
 				dataLakePrincipal: {
-					dataLakePrincipalIdentifier: crawlerRole.roleArn
+					dataLakePrincipalIdentifier: props.crawlerRole.roleArn
 				},
 				resource: {
 					dataLocationResource: {
 						catalogId: this.database.catalogId,
-						s3Resource: `${target.target.Path}`
+						s3Resource: `${target.s3Arn}` // this needs to be the S3Arn?
 
 					},
 				},
@@ -97,45 +85,16 @@ export class GlueDataBase extends constructs.Construct {
 		})
 	};
 
-
-
-	// new lakeformation.CfnPermissions(this, 's3permission', {
-	// 	dataLakePrincipal: {
-	// 		dataLakePrincipalIdentifier: crawlerRole.roleArn
-	// 	},
-	// 	resource: {
-	// 		dataLocationResource: {
-	// 			catalogId: this.database.catalogId,
-	// 			s3Resource: `${props.path.bucket.bucketArn}/${props.path.path}`
-
-	// 		},
-	// 	},
-	// 	permissions: [datalake.Permissions.CREATE_TABLE_READ_WRITE]
-	// })
-
-	
-	// create the crawlwer
-
-	return new crawler.Crawler(this, `crawler${props.name}`, {
+	const dataCrawler = new crawler.Crawler(this, `crawler${props.name}`, {
 		name: props.name,
-		role: crawlerRole,
+		role: props.crawlerRole,
 		databaseName: this.databaseName,
 		description: props.description,
 		targets: props.targets
 	})
+	return dataCrawler
 
 
-	// return new glue.CfnCrawler(this, `crawler${props.name}`, {
-	// 	role: crawlerRole.roleArn,
-	// 	databaseName: this.databaseName,
-	// 	targets: {
-	// 		s3Targets: [
-	// 			{path: `s3://${props.path.bucket.bucketName}/${props.path.path}`}
-	// 		]
-	// 	},
-	// 	name: props.name,
-	// })
-	
 	
   }
 }

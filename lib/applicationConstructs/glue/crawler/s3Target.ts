@@ -5,8 +5,7 @@ import {
 	aws_s3 as s3,
 	aws_sqs as sqs,
 } from 'aws-cdk-lib';
-import { PropagatedTagSource } from "aws-cdk-lib/aws-ecs";
-import { CfnPrincipalPermissions } from "aws-cdk-lib/aws-lakeformation";
+
 
 import * as constructs from "constructs";
 import * as datalake from "../../lakeformation/lakeformation";
@@ -41,11 +40,13 @@ export interface S3TargetProps {
 export class S3Target extends constructs.Construct {
   
 	target: IS3TargetObject
+	s3Arn: string;
 	
 	constructor(scope: constructs.Construct, id: string, props: S3TargetProps) {
     super(scope, id);
 
-	this.target = {'Path': `s3://${props.path.bucket.bucketArn}/${props.path.path}}`}
+	this.target = {'Path': `s3://${props.path.bucket.bucketName}/${props.path.path}`}
+	this.s3Arn = props.path.bucket.bucketArn
 
     // https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Glue.html#createCrawler-property
 

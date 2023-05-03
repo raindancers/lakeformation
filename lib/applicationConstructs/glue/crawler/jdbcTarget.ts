@@ -16,33 +16,32 @@ export interface s3Path {
 	readonly path: string;
 }
 
-export interface IS3TargetObject {
-	ConnectionName?: string;
-	DlqEventQueueArn?: string;
-	EventQueueArn?: string;
-	Exclusions?: string[];
-	Path: string;
-	SampleSize?: number;
+export enum MetaDataTypes {
+	COMMENTS = 'COMMENTS',
+	RAWTYPES = 'RAWTYPES',
 }
 
-export interface S3TargetProps {
+export interface IJDBCTargetObject {
+	ConnectionName?: string;
+	Exclusions?: string[];
+	Path: string;
+	EnableAdditionalMetadata: string[];
+}
+
+export interface JDBCTargetProps {
   readonly path: s3Path;
   readonly exclusions?: string[];
   readonly connectionName?: string;
-  readonly sampleSize?: number;
-  /**
-   * A queue may have a DLQ
-   */ 
-  readonly eventQueue?: sqs.Queue,
-  readonly dlqEventQueue?: sqs.Queue,
+  readonly enableAdditionalMetadata: MetaDataTypes[];
+
 }
 
 
 export class JDBCTarget extends constructs.Construct {
   
-	target: IS3TargetObject
+	target: IJDBCTargetObject
 	
-	constructor(scope: constructs.Construct, id: string, props: S3TargetProps) {
+	constructor(scope: constructs.Construct, id: string, props: JDBCTargetProps) {
     super(scope, id);
 
     // https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Glue.html#createCrawler-property

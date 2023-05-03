@@ -12,12 +12,7 @@ const lake = new WorldDataLakeFormation(app, 'LakeStack', {
   nonproduction: true
 });
 
-// World data is an exaxmple of calling an API, getting a json response and creating a Database in teh Lake
-new WorldData(app, 'WorldData', {
-  datalake:lake.datalake,
+const worldData = new WorldData(app, 'WorldDataStack', {
   targetBucket: lake.bronze,
-  bucketsuffix: 'ingest/worldData/'
+  bucketsuffix: 'ingest/worldData'
 })
-
-
-

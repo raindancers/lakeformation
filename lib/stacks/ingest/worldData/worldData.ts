@@ -3,16 +3,14 @@ import {
   aws_lambda,
   aws_s3 as s3,
   aws_logs as logs, 
+  aws_iam as iam,
 } from "aws-cdk-lib";
 
-import * as lakeformation from "../../../applicationConstructs/lakeformation/lakeformation";
 import * as constructs from "constructs";
 import * as path from "path";
-import { S3Target } from "../../../applicationConstructs/glue/crawler/s3Target";
 
 export interface WorldDataProps extends cdk.StackProps {
 
-  datalake: lakeformation.LakeFormation;
   targetBucket: s3.Bucket;
   bucketsuffix: string;
 }
@@ -22,31 +20,7 @@ export class WorldData extends cdk.Stack {
   constructor(scope: constructs.Construct, id: string, props: WorldDataProps){
     super(scope, id, props);
 
-    // this will create a glue database and an ingest crawler
-    const database = props.datalake.addDatabase({
-      databaseName: "worlddata",
-    });
-
-    const thing = new S3Target(this, 's3target', {
-      path: {
-        bucket: props.targetBucket,
-        path: props.bucketsuffix,
-      },
-      connectionName: 'WorlddataIngest',
-    })
-
-    
-
-    // this will create a crawler that will create a table in the Glue Database.
-    database.addCrawler({
-      name: "CrawlWorldData",
-      description: "Get World Data",
-      targets: {
-        s3Targets: [
-          thing
-        ],
-      }
-    });
+   
 
     // create the lambda with bundling.
     const getWorldDataFn = new aws_lambda.Function(this, "Function", {

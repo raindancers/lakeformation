@@ -134,14 +134,16 @@ export class Crawler extends constructs.Construct {
       Targets: targets,
       DatabaseName: props.databaseName,
     };
-
-
+    console.log('------')
+    console.log(this.parameters)
     
+
     if (props.description) {
       this.parameters.Description = props.description;
     }
 
-    new cr.AwsCustomResource(this, "Crawler", {
+    const crawler = new cr.AwsCustomResource(this, "Crawler", {
+      resourceType: "Custom::Crawler",
       onCreate: {
         service: "Glue",
         action: "createCrawler",
@@ -160,10 +162,26 @@ export class Crawler extends constructs.Construct {
           Name: props.name,
         },
       },
-      policy: cr.AwsCustomResourcePolicy.fromSdkCalls({
-        resources: cr.AwsCustomResourcePolicy.ANY_RESOURCE,
-      }),
+      
+      policy: cr.AwsCustomResourcePolicy.fromStatements([
+        new iam.PolicyStatement(
+          { actions: 
+            [
+              "glue:CreateCrawler",
+              "glue:UpdateCrawler",
+              "glue:DeleteCrawler",
+              "iam:PassRole"
+            ],
+            resources: ["*"]
+          }
+        )
+      ])
     });
+
+    
+
+
+
   }
   /**
    * This will add classifers to the crawler.

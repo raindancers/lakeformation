@@ -1,0 +1,98 @@
+{
+    "Crawlers": [
+        {
+            "Name": "CrawlWorldData",
+            "Role": "LakeStack-crawlerRoleCB71E89D-FA4L9F5WRKW",
+            "Targets": {
+                "S3Targets": [
+                    {
+                        "Path": "s3://lakestack-lakeformationtestbronze2357ec0a-1a4kvnbh9pert/ingest/worldData/",
+                        "Exclusions": []
+                    }
+                ],
+                "JdbcTargets": [],
+                "MongoDBTargets": [],
+                "DynamoDBTargets": [],
+                "CatalogTargets": [],
+                "DeltaTargets": []
+            },
+            "DatabaseName": "worlddata",
+            "Description": "Get World Data",
+            "Classifiers": [],
+            "RecrawlPolicy": {
+                "RecrawlBehavior": "CRAWL_EVERYTHING"
+            },
+            "SchemaChangePolicy": {
+                "UpdateBehavior": "UPDATE_IN_DATABASE",
+                "DeleteBehavior": "DEPRECATE_IN_DATABASE"
+            },
+            "LineageConfiguration": {
+                "CrawlerLineageSettings": "DISABLE"
+            },
+            "State": "READY",
+            "CrawlElapsedTime": 0,
+            "CreationTime": "2023-05-03T13:02:19+12:00",
+            "LastUpdated": "2023-05-03T14:40:24+12:00",
+            "LastCrawl": {
+                "Status": "SUCCEEDED",
+                "LogGroup": "/aws-glue/crawlers",
+                "LogStream": "CrawlWorldData",
+                "MessagePrefix": "0598a34a-de4a-43cb-b612-c5f67162c469",
+                "StartTime": "2023-05-03T14:36:44+12:00"
+            },
+            "Version": 5,
+            "Configuration": "{\"Version\":1.0,\"CreatePartitionIndex\":true}",
+            "LakeFormationConfiguration": {
+                "UseLakeFormationCredentials": true,
+                "AccountId": "847997321372"
+            }
+        },
+        {
+            "Name": "test",
+            "Role": "LakeStack-crawlerRoleCB71E89D-FA4L9F5WRKW",
+            "Targets": {
+                "S3Targets": [
+                    {
+                        "Path": "s3://lakestack-lakeformationtestbronze2357ec0a-1a4kvnbh9pert/ingest/worldData/",
+                        "Exclusions": []
+                    }
+                ],
+                "JdbcTargets": [],
+                "MongoDBTargets": [],
+                "DynamoDBTargets": [],
+                "CatalogTargets": [],
+                "DeltaTargets": []
+            },
+            "DatabaseName": "worlddata",
+            "Description": "test",
+            "Classifiers": [],
+            "RecrawlPolicy": {
+                "RecrawlBehavior": "CRAWL_EVERYTHING"
+            },
+            "SchemaChangePolicy": {
+                "UpdateBehavior": "UPDATE_IN_DATABASE",
+                "DeleteBehavior": "DEPRECATE_IN_DATABASE"
+            },
+            "LineageConfiguration": {
+                "CrawlerLineageSettings": "DISABLE"
+            },
+            "State": "READY",
+            "CrawlElapsedTime": 0,
+            "CreationTime": "2023-05-03T13:37:50+12:00",
+            "LastUpdated": "2023-05-03T13:37:50+12:00",
+            "LastCrawl": {
+                "Status": "SUCCEEDED",
+                "LogGroup": "/aws-glue/crawlers",
+                "LogStream": "test",
+                "MessagePrefix": "b07824d6-b3c3-4773-ab89-e7e5d322b2dd",
+                "StartTime": "2023-05-03T13:37:53+12:00"
+            },
+            "Version": 1,
+            "Configuration": "{\"Version\":1.0,\"CreatePartitionIndex\":true}",
+            "LakeFormationConfiguration": {
+                "UseLakeFormationCredentials": true,
+                "AccountId": "847997321372"
+            }
+        }
+    ]
+}
