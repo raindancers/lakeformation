@@ -14,5 +14,5 @@ const lake = new WorldDataLakeFormation(app, 'LakeStack', {
 
 const worldData = new WorldData(app, 'WorldDataStack', {
   targetBucket: lake.bronze,
-  bucketsuffix: 'ingest/worldData'
+  bucketsuffix: 'ingest/worldData',
 })

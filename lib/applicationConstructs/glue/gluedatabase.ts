@@ -47,7 +47,7 @@ export class GlueDataBase extends constructs.Construct {
   }
 
   public addCrawler(props: CrawlerProps): crawler.Crawler {
-
+  //public addCrawler(props: CrawlerProps): void {
 
 
 	// allow the crawler to access to the glue database
@@ -92,9 +92,7 @@ export class GlueDataBase extends constructs.Construct {
 		description: props.description,
 		targets: props.targets
 	})
+
 	return dataCrawler
-
-
-	
   }
 }
