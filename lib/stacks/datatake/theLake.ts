@@ -97,7 +97,7 @@ export class WorldDataLakeFormation extends cdk.Stack {
       }
     )
     
-    // // crawler.setConfiguration("{\"Version\":1.0,\"CreatePartitionIndex\":true}") // this might be beetter set as an enum.
+    crawler.setConfiguration("{\"Version\":1.0,\"CreatePartitionIndex\":true}") // this might be beetter set as an enum.
     
 
     
