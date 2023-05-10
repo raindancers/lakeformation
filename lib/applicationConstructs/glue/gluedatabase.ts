@@ -1,9 +1,12 @@
 import * as cdk from 'aws-cdk-lib';
+import * as path from 'path';
 import {
   aws_s3 as s3,
   aws_lakeformation as lakeformation,
   aws_iam as iam,
   aws_glue as glue,
+  custom_resources as cr,
+  aws_lambda as aws_lambda,
 } from 'aws-cdk-lib';
 
 import * as constructs from 'constructs';
@@ -47,9 +50,7 @@ export class GlueDataBase extends constructs.Construct {
   }
 
   public addCrawler(props: CrawlerProps): crawler.Crawler {
-  //public addCrawler(props: CrawlerProps): void {
-
-
+  
 	// allow the crawler to access to the glue database
 	new lakeformation.CfnPermissions(this, 'gluedatabasepermission', {
 		dataLakePrincipal: {
@@ -66,24 +67,30 @@ export class GlueDataBase extends constructs.Construct {
 
 	// if targets includes s3targets give permissions to them.
 
+	
+
+
 	if (props.targets.s3Targets) {
-		props.targets.s3Targets.forEach((target, index) => { 
+
+
+		props.targets.s3Targets.forEach((target, index) => {
 			
-			new lakeformation.CfnPermissions(this, `s3permission${index}`, {
+			const s3permission = new lakeformation.CfnPermissions(this, `s3permission${index}`, {
 				dataLakePrincipal: {
 					dataLakePrincipalIdentifier: props.crawlerRole.roleArn
 				},
 				resource: {
 					dataLocationResource: {
 						catalogId: this.database.catalogId,
-						s3Resource: `${target.s3Arn}` // this needs to be the S3Arn?
+						s3Resource: `${target.s3Arn}` 
 
 					},
 				},
 				permissions: [datalake.Permissions.CREATE_TABLE_READ_WRITE]
 			})
 		})
-	};
+	}
+
 
 	const dataCrawler = new crawler.Crawler(this, `crawler${props.name}`, {
 		name: props.name,
@@ -92,6 +99,7 @@ export class GlueDataBase extends constructs.Construct {
 		description: props.description,
 		targets: props.targets
 	})
+
 
 	return dataCrawler
   }
