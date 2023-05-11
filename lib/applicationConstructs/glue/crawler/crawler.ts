@@ -5,31 +5,10 @@ import {
 } from "aws-cdk-lib";
 
 import * as constructs from "constructs";
-import { GlueDataBase } from "../gluedatabase";
+
 import { GlueClassifier } from "../classifier/classifier";
 import { S3Target } from "./s3Target";
 import { JDBCTarget } from "./jdbcTarget";
-import { PrincipalWithConditions } from "aws-cdk-lib/aws-iam";
-import { CognitoUserPoolsAuthorizer } from "aws-cdk-lib/aws-apigateway";
-
-/**
- /* Check that At least one Target type is supplied.
- *  Credit: https://stackoverflow.com/questions/40510611/typescript-interface-require-one-of-two-properties-to-exist
- */
-type RequireAtLeastOneProp<T, Keys extends keyof T = keyof T> = Pick<
-  T,
-  Exclude<keyof T, Keys>
-> &
-  {
-    [K in Keys]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>>;
-  }[Keys];
-
-export interface TargetOptions {
-  s3Targets?: S3Target[] | undefined;
-  jdbcTargets?: JDBCTarget[] | undefined;
-}
-
-export type Targets = RequireAtLeastOneProp<TargetOptions, "s3Targets" | "jdbcTargets">;
 
 export interface LakeFormationConfiguration {
   AccountId?: string | undefined;
@@ -74,7 +53,8 @@ export interface SchemaChangePolicy {
 export interface ICrawlerParameters {
   Name: string;
   Role: string;
-  Targets: Targets;
+  s3Targets?: S3Target[] | undefined;
+  jdbcTargets?: JDBCTarget[]
   DatabaseName: string;
   Description?: string | undefined;
   Classifiers?: string[] | undefined;
@@ -96,7 +76,8 @@ export interface addClassifiersProps {
 export interface CrawlerProps {
   readonly name: string;
   readonly role: iam.Role;
-  readonly targets: Targets;
+  readonly s3Targets?: S3Target[] | undefined;
+  readonly jdbcTargets?: JDBCTarget[]
   readonly databaseName:string;
   readonly description?: string | undefined;
 }
@@ -107,22 +88,32 @@ export class Crawler extends constructs.Construct {
 
   constructor(scope: constructs.Construct, id: string, props: CrawlerProps) {
     super(scope, id);
+    
+    // validate that only one of s3Targets has been set. Could not use Type, as this was jsii incompatiable.
+    // so this has to be run time check 🔥
+    if (props.s3Targets && props.jdbcTargets) {
+      throw new Error("Can not have both S3Targets and JdbcTargets")
+    }
+  
+    if (props.s3Targets === undefined && props.jdbcTargets === undefined) {
+      throw new Error("Must have at least one target type")
+    } 
 	
 	const targets: {[key:string]: any} = {}
 
-	if (props.targets.s3Targets) {
+	if (props.s3Targets) {
 		const s3targets: object[] = []
-		props.targets.s3Targets.forEach((target) => {
+		props.s3Targets.forEach((target) => {
 			s3targets.push(target.target)
 		})	
-		targets['S3Targets'] = s3targets
+		targets.S3Targets = s3targets
 	}
-	if (props.targets.jdbcTargets) {
+	if (props.jdbcTargets) {
 		const jdbcTargets: object[] = []
-		props.targets.jdbcTargets.forEach((target) => {
+		props.jdbcTargets.forEach((target) => {
 			jdbcTargets.push(target.target)
 		})	
-		targets['JdbcTargets'] = jdbcTargets
+		targets.JdbcTargets = jdbcTargets
 	}
 
 	console.log(targets)

@@ -104,11 +104,9 @@ export class WorldDataLakeFormation extends cdk.Stack {
       name: "CrawlWorldData",
       crawlerRole: crawlerRole,
       description: "Get World Data",
-      targets: {
-        s3Targets: [
+      s3targets: [
           crawlerTarget,
-        ],
-      }
+      ],
     });
 
     crawler.useWithLakeFormation(

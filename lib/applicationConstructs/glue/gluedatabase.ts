@@ -12,6 +12,11 @@ import {
 import * as constructs from 'constructs';
 import * as datalake from '../lakeformation/lakeformation'
 import * as crawler from '../glue/crawler/crawler'
+import { S3Target } from "../glue/crawler/s3Target";
+import { JDBCTarget } from "../glue/crawler/jdbcTarget";
+
+
+
 
 
 export interface DataBaseProps {
@@ -26,7 +31,8 @@ export interface S3Path {
 export interface CrawlerProps {
 	readonly name: string,
 	readonly description?: string | undefined,
-	readonly targets: crawler.Targets,
+	readonly s3targets?: S3Target[],
+	readonly jdbcTargets?: JDBCTarget[],
 	readonly crawlerRole: iam.Role,
 }
 
@@ -50,7 +56,17 @@ export class GlueDataBase extends constructs.Construct {
   }
 
   public addCrawler(props: CrawlerProps): crawler.Crawler {
+
+	// validate that the props provided are valid
+	if (props.s3targets && props.jdbcTargets) {
+		throw new Error("Cannot have both s3Targets and jdbcTargets")
+	};
+
+	if (props.s3targets === undefined && props.jdbcTargets === undefined) {
+		throw new Error("Must have one of s3Targets or jdbcTargets")
+	};
   
+
 	// allow the crawler to access to the glue database
 	new lakeformation.CfnPermissions(this, 'gluedatabasepermission', {
 		dataLakePrincipal: {
@@ -65,15 +81,10 @@ export class GlueDataBase extends constructs.Construct {
 		permissions: [datalake.Permissions.ALL]
 	})
 
-	// if targets includes s3targets give permissions to them.
-
 	
+	if (props.s3targets) {
 
-
-	if (props.targets.s3Targets) {
-
-
-		props.targets.s3Targets.forEach((target, index) => {
+		props.s3targets.forEach((target, index) => {
 			
 			const s3permission = new lakeformation.CfnPermissions(this, `s3permission${index}`, {
 				dataLakePrincipal: {
@@ -97,10 +108,10 @@ export class GlueDataBase extends constructs.Construct {
 		role: props.crawlerRole,
 		databaseName: this.databaseName,
 		description: props.description,
-		targets: props.targets
+		s3Targets: props.s3targets,
+		jdbcTargets: props.jdbcTargets,
 	})
-
-
+	
 	return dataCrawler
   }
 }
