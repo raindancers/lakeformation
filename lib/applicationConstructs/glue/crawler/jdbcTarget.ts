@@ -36,7 +36,11 @@ export interface JDBCTargetProps {
 
 }
 
-
+/**
+ * This class is incomplete. It will not run. the Class needs to exisit 
+ * so, when it is ready the addCrawler methods will work. 
+ * TODO:
+ */
 export class JDBCTarget extends constructs.Construct {
   
 	target: IJDBCTargetObject
@@ -52,23 +56,9 @@ export class JDBCTarget extends constructs.Construct {
 	  this.target.ConnectionName = props.connectionName
 	}
 
-	if (props.eventQueue){
-		this.target.EventQueueArn = props.eventQueue.queueArn
-	}
-
-	if (props.eventQueue?.deadLetterQueue) {
-		this.target.DlqEventQueueArn = props.eventQueue.deadLetterQueue.queue.queueArn
-	}
-
 	if (props.exclusions) {
 		this.target.Exclusions = props.exclusions
 	}
 
-	if (props.sampleSize){
-		if (props.sampleSize <= 1 || props.sampleSize > 249) {
-			throw new Error("SampleSize for S3 crawler must be between 1 and 249 inclusive");			
-		}
-		this.target.SampleSize = props.sampleSize
-	}  
   }
 }
